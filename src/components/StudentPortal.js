@@ -8,7 +8,20 @@ const StudentPortal = () => {
   const [inputMethod, setInputMethod] = useState('text');
   const [textInput, setTextInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [attendanceMarked, setAttendanceMarked] = useState(false);
+  const [attendanceMarked, setAttendanceMarked] = useState({});
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [chatMessages, setChatMessages] = useState([
+    { sender: 'bot', text: 'Hello! I\'m your psychological support assistant. How are you feeling today?' }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+
+  // Demo classes data
+  const demoClasses = [
+    { id: 1, name: 'Mathematics 101', time: '9:00 AM - 10:30 AM', teacher: 'Dr. Smith', room: 'A-101' },
+    { id: 2, name: 'Computer Science Fundamentals', time: '11:00 AM - 12:30 PM', teacher: 'Prof. Johnson', room: 'B-205' },
+    { id: 3, name: 'Physics Lab', time: '2:00 PM - 3:30 PM', teacher: 'Dr. Williams', room: 'C-310' },
+    { id: 4, name: 'English Literature', time: '4:00 PM - 5:30 PM', teacher: 'Ms. Davis', room: 'D-102' }
+  ];
 
   // Dummy student data
   const dummyStudent = {
@@ -52,9 +65,42 @@ const StudentPortal = () => {
     setIsRecording(false);
   };
 
-  const markAttendance = () => {
-    setAttendanceMarked(true);
+  const markAttendance = (classId) => {
+    setAttendanceMarked(prev => ({
+      ...prev,
+      [classId]: true
+    }));
     // In a real implementation, this would send attendance data to the server
+  };
+
+  const handleChatInputChange = (e) => {
+    setChatInput(e.target.value);
+  };
+
+  const sendChatMessage = () => {
+    if (!chatInput.trim()) return;
+    
+    // Add user message
+    setChatMessages(prev => [...prev, { sender: 'user', text: chatInput }]);
+    
+    // Simulate bot response
+    setTimeout(() => {
+      let botResponse = "I understand how you feel. Would you like to talk more about it?";
+      
+      if (chatInput.toLowerCase().includes('stress') || chatInput.toLowerCase().includes('stressed')) {
+        botResponse = "I'm sorry to hear you're feeling stressed. Remember to take breaks and practice deep breathing. Would you like some stress management techniques?";
+      } else if (chatInput.toLowerCase().includes('sad') || chatInput.toLowerCase().includes('unhappy')) {
+        botResponse = "I'm here for you. It's normal to feel sad sometimes. Would you like to talk about what's bothering you?";
+      } else if (chatInput.toLowerCase().includes('anxious') || chatInput.toLowerCase().includes('anxiety')) {
+        botResponse = "Anxiety can be challenging. Have you tried any mindfulness exercises? They can help ground you in the present moment.";
+      } else if (chatInput.toLowerCase().includes('help') || chatInput.toLowerCase().includes('need help')) {
+        botResponse = "I'm here to help. Would you like to talk about academic concerns or personal well-being?";
+      }
+      
+      setChatMessages(prev => [...prev, { sender: 'bot', text: botResponse }]);
+    }, 1000);
+    
+    setChatInput('');
   };
 
   return (
@@ -74,6 +120,127 @@ const StudentPortal = () => {
             onClick={handleCardClick}
           />
         </div>
+        
+        {/* Navigation Tabs */}
+        <div className="flex border-b mb-6">
+          <button 
+            className={`px-4 py-2 font-medium ${activeTab === 'dashboard' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'}`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            Dashboard
+          </button>
+          <button 
+            className={`px-4 py-2 font-medium ${activeTab === 'classes' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'}`}
+            onClick={() => setActiveTab('classes')}
+          >
+            My Classes
+          </button>
+          <button 
+            className={`px-4 py-2 font-medium ${activeTab === 'chatbot' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'}`}
+            onClick={() => setActiveTab('chatbot')}
+          >
+            Psychological Support
+          </button>
+        </div>
+
+        {activeTab === 'dashboard' && (
+          <div className="mb-6 p-4 border border-gray-200 rounded-lg">
+            <h3 className="text-lg font-medium mb-4">Today's Schedule</h3>
+            <div className="space-y-3">
+              {demoClasses.slice(0, 2).map(cls => (
+                <div key={cls.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <div>
+                    <p className="font-medium">{cls.name}</p>
+                    <p className="text-sm text-gray-600">{cls.time} • {cls.room}</p>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {attendanceMarked[cls.id] ? 
+                      <span className="text-green-600">✓ Present</span> : 
+                      <button 
+                        onClick={() => markAttendance(cls.id)} 
+                        className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      >
+                        Mark Attendance
+                      </button>
+                    }
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'classes' && (
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-4">My Classes</h3>
+            <div className="space-y-4">
+              {demoClasses.map(cls => (
+                <div key={cls.id} className="p-4 border border-gray-200 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h4 className="font-medium">{cls.name}</h4>
+                      <p className="text-sm text-gray-600">{cls.teacher}</p>
+                      <p className="text-sm text-gray-600">{cls.time} • {cls.room}</p>
+                    </div>
+                    <div>
+                      {attendanceMarked[cls.id] ? 
+                        <span className="text-green-600 font-medium">✓ Present</span> : 
+                        <button 
+                          onClick={() => markAttendance(cls.id)} 
+                          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                          Mark Attendance
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'chatbot' && (
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-4">Psychological Support Assistant</h3>
+            <div className="border border-gray-200 rounded-lg h-96 flex flex-col">
+              <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                {chatMessages.map((msg, index) => (
+                  <div 
+                    key={index} 
+                    className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div 
+                      className={`max-w-xs p-3 rounded-lg ${
+                        msg.sender === 'user' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="p-3 border-t border-gray-200 flex">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={handleChatInputChange}
+                  placeholder="Type your message..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()}
+                />
+                <button
+                  onClick={sendChatMessage}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700"
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="mb-6 p-4 border border-gray-200 rounded-lg">
           <h4 className="text-md font-medium text-gray-900 mb-3">Mark Attendance</h4>
