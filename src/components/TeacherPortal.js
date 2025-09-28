@@ -78,7 +78,7 @@ const TeacherPortal = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleCardClick = (student) => {
     setSelectedStudent(student);
